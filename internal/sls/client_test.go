@@ -58,7 +58,10 @@ func TestSendLogs_Success(t *testing.T) {
 	}
 	c := NewClient(env)
 	// 使用自定义 Transport，将请求转发到本地测试服务。
-	c.client.Transport = &roundTripper{target: srv}
+	c.SetHTTPClient(&http.Client{
+		Transport: &roundTripper{target: srv},
+		Timeout:   5 * time.Second,
+	})
 
 	now := time.Now()
 	logs := []model.LogLine{
