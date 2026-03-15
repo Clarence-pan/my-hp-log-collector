@@ -1,0 +1,16 @@
+sources:
+  - name: app-main
+    enabled: true
+    patterns:
+      - /var/log/app/*.log
+      - /var/log/app/*.out
+
+batch:
+  interval: 3s
+  max_size: 5000
+
+# optional dynamic discovery and offsets
+sources_scan_interval: 10s
+offset_file: log-collector-offsets.json
+offset_save_interval: 30s
+
