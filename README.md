@@ -69,6 +69,34 @@ make build-linux-amd64
 make build-darwin-arm64
 ```
 
+- `make install`：**仅支持 Ubuntu Linux**。将二进制安装为 systemd 服务（需 `sudo`），并输出配置文件路径供修改。详见下方「安装为系统服务」。
+
+### 安装为系统服务（仅 Ubuntu Linux）
+
+在 Ubuntu 上可执行 `make install`，将 log-collector 注册为 systemd 服务。安装过程会：
+
+1. 根据当前架构（amd64/aarch64）构建或使用已有 `dist/log-collector-linux-*` 二进制；
+2. 将二进制安装到 `/usr/local/bin/log-collector`；
+3. 创建配置目录 `/etc/log-collector/`，并放入配置模板；
+4. 安装 systemd 单元并执行 `daemon-reload`、`enable`。
+
+**安装后请先修改以下配置文件再启动服务：**
+
+| 用途       | 路径 |
+|------------|------|
+| 采集配置   | `/etc/log-collector/log-collector.yaml` |
+| 环境变量   | `/etc/log-collector/.env`（阿里云 SLS 的 project/host/logstore/log_group 等） |
+
+修改完成后启动并查看状态：
+
+```bash
+sudo systemctl start log-collector
+sudo systemctl status log-collector
+journalctl -u log-collector -f
+```
+
+服务工作目录为 `/etc/log-collector`，程序会从该目录读取 `.env` 和 `--config` 指定的 YAML。
+
 ### 运行
 
 ```bash

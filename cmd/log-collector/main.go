@@ -18,7 +18,9 @@ import (
 )
 
 func main() {
-	configPath := flag.String("config", "log-collector.yaml", "path to config file")
+	var configPath string
+	flag.StringVar(&configPath, "config", "log-collector.yaml", "path to config file")
+	flag.StringVar(&configPath, "c", "log-collector.yaml", "path to config file (shorthand)")
 	flag.Parse()
 
 	// 加载环境变量与 SLS 配置。
@@ -29,7 +31,7 @@ func main() {
 	}
 
 	// 加载应用配置。
-	appCfg, err := config.LoadAppConfig(*configPath)
+	appCfg, err := config.LoadAppConfig(configPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s [FATAL] load config failed: %v\n", time.Now().Format(time.RFC3339), err)
 		os.Exit(1)
@@ -41,7 +43,7 @@ func main() {
 	}
 
 	fmt.Fprintf(os.Stdout, "%s [INFO] starting log-collector, config=%s, hostname=%s\n",
-		time.Now().Format(time.RFC3339), *configPath, hostname)
+		time.Now().Format(time.RFC3339), configPath, hostname)
 
 	// 初始化 offset store。
 	store := offset.NewStore(appCfg.OffsetFile)

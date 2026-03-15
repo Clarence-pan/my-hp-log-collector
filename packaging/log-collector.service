@@ -1,0 +1,18 @@
+[Unit]
+Description=Log collector for Aliyun SLS Web Tracking
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/etc/log-collector
+EnvironmentFile=-/etc/log-collector/.env
+ExecStart=/usr/local/bin/log-collector --config /etc/log-collector/log-collector.yaml
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=log-collector
+
+[Install]
+WantedBy=multi-user.target
