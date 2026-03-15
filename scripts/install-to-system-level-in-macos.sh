@@ -85,6 +85,9 @@ cat > "${PLIST_PATH}" <<EOF
     <string>${CONFIG_DIR}/log-collector.yaml</string>
   </array>
 
+  <key>WorkingDirectory</key>
+  <string>${CONFIG_DIR}</string>
+
   <key>RunAtLoad</key>
   <true/>
 
