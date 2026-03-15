@@ -6,12 +6,83 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"my-hp-log-collector/internal/config"
 	"my-hp-log-collector/internal/model"
 )
+
+// captureOutput 用于在测试中捕获 stdout 或 stderr 输出。
+func captureOutput(f func()) string {
+	// 使用管道重定向输出
+	reader, writer, _ := os.Pipe()
+	origStdout := os.Stdout
+	origStderr := os.Stderr
+
+	// 同时重定向 stdout/stderr，方便复用。
+	os.Stdout = writer
+	os.Stderr = writer
+
+	// 执行待测逻辑
+	f()
+
+	// 还原
+	_ = writer.Close()
+	os.Stdout = origStdout
+	os.Stderr = origStderr
+
+	var buf bytes.Buffer
+	_, _ = io.Copy(&buf, reader)
+	_ = reader.Close()
+	return buf.String()
+}
+
+func TestHandleResponse_SuccessLogsCount(t *testing.T) {
+	c := &Client{}
+	resp := &http.Response{
+		StatusCode: 200,
+		Body:       io.NopCloser(strings.NewReader("ok")),
+	}
+
+	output := captureOutput(func() {
+		shouldRetry, err := c.handleResponse("2025-01-01T00:00:00Z", resp, nil, 3)
+		if shouldRetry {
+			t.Fatalf("expected shouldRetry to be false")
+		}
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+	})
+
+	if !strings.Contains(output, "logs_count=3") {
+		t.Fatalf("expected output to contain logs_count=3, got: %s", output)
+	}
+}
+
+func TestHandleResponse_ServerErrorLogsCount(t *testing.T) {
+	c := &Client{}
+	resp := &http.Response{
+		StatusCode: 500,
+		Body:       io.NopCloser(strings.NewReader("server error")),
+	}
+
+	output := captureOutput(func() {
+		shouldRetry, err := c.handleResponse("2025-01-01T00:00:00Z", resp, nil, 5)
+		if !shouldRetry {
+			t.Fatalf("expected shouldRetry to be true")
+		}
+		if err == nil {
+			t.Fatalf("expected error, got nil")
+		}
+	})
+
+	if !strings.Contains(output, "logs_count=5") {
+		t.Fatalf("expected output to contain logs_count=5, got: %s", output)
+	}
+}
 
 // roundTripper 用于将请求重定向到 httptest.Server。
 type roundTripper struct {

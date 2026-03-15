@@ -100,7 +100,7 @@ func (c *Client) SendLogs(filePath, hostname, group string, logs []model.LogLine
 
 	// 首次发送
 	resp, err := c.client.Do(req)
-	if shouldRetry, err2 := c.handleResponse(now, resp, err); shouldRetry {
+	if shouldRetry, err2 := c.handleResponse(now, resp, err, len(logs)); shouldRetry {
 		time.Sleep(1 * time.Second)
 		// 重建请求体（buf 已被消费，重新压缩一次）
 		var buf2 bytes.Buffer
@@ -122,7 +122,7 @@ func (c *Client) SendLogs(filePath, hostname, group string, logs []model.LogLine
 		req2.Header = req.Header.Clone()
 
 		resp2, err3 := c.client.Do(req2)
-		if _, err4 := c.handleResponse(now, resp2, err3); err4 != nil {
+		if _, err4 := c.handleResponse(now, resp2, err3, len(logs)); err4 != nil {
 			// 重试仍失败，直接返回错误。
 			return err4
 		}
@@ -135,36 +135,37 @@ func (c *Client) SendLogs(filePath, hostname, group string, logs []model.LogLine
 }
 
 // handleResponse 处理一次 HTTP 请求结果，返回 (shouldRetry, error)。
-func (c *Client) handleResponse(ts string, resp *http.Response, err error) (bool, error) {
+// logsCount 表示本次请求中包含的日志条数，用于记录更详细的日志信息。
+func (c *Client) handleResponse(ts string, resp *http.Response, err error, logsCount int) (bool, error) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s [ERROR] failed to send logs: %v\n", ts, err)
+		fmt.Fprintf(os.Stderr, "%s [ERROR] failed to send logs: %v, logs_count=%d\n", ts, err, logsCount)
 		// 认为是可重试错误。
-		fmt.Fprintf(os.Stderr, "%s [INFO] retrying after 1s due to send error\n", ts)
+		fmt.Fprintf(os.Stderr, "%s [INFO] retrying after 1s due to send error, logs_count=%d\n", ts, logsCount)
 		return true, err
 	}
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		fmt.Fprintf(os.Stdout, "%s [INFO] sent logs successfully, status=%d, body_len=%d\n", ts, resp.StatusCode, len(body))
+		fmt.Fprintf(os.Stdout, "%s [INFO] sent logs successfully, status=%d, body_len=%d, logs_count=%d\n", ts, resp.StatusCode, len(body), logsCount)
 		return false, nil
 	}
 
 	// 4xx 视为不可重试
 	if resp.StatusCode >= 400 && resp.StatusCode < 500 {
-		fmt.Fprintf(os.Stderr, "%s [ERROR] non-retryable status=%d, body=%s\n", ts, resp.StatusCode, string(body))
+		fmt.Fprintf(os.Stderr, "%s [ERROR] non-retryable status=%d, body=%s, logs_count=%d\n", ts, resp.StatusCode, string(body), logsCount)
 		return false, fmt.Errorf("non-retryable status: %d", resp.StatusCode)
 	}
 
 	// 5xx 可重试一次
 	if resp.StatusCode >= 500 {
-		fmt.Fprintf(os.Stderr, "%s [ERROR] server error status=%d, body=%s\n", ts, resp.StatusCode, string(body))
-		fmt.Fprintf(os.Stderr, "%s [INFO] retrying after 1s due to server error\n", ts)
+		fmt.Fprintf(os.Stderr, "%s [ERROR] server error status=%d, body=%s, logs_count=%d\n", ts, resp.StatusCode, string(body), logsCount)
+		fmt.Fprintf(os.Stderr, "%s [INFO] retrying after 1s due to server error, logs_count=%d\n", ts, logsCount)
 		return true, fmt.Errorf("server error status: %d", resp.StatusCode)
 	}
 
 	// 其他情况统一视为错误但不重试。
-	fmt.Fprintf(os.Stderr, "%s [ERROR] unexpected status=%d, body=%s\n", ts, resp.StatusCode, string(body))
+	fmt.Fprintf(os.Stderr, "%s [ERROR] unexpected status=%d, body=%s, logs_count=%d\n", ts, resp.StatusCode, string(body), logsCount)
 	return false, fmt.Errorf("unexpected status: %d", resp.StatusCode)
 }
 
