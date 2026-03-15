@@ -9,9 +9,9 @@ import (
 
 	"github.com/nxadm/tail"
 
-	"my-log-collector/internal/config"
-	"my-log-collector/internal/model"
-	"my-log-collector/internal/offset"
+	"my-hp-log-collector/internal/config"
+	"my-hp-log-collector/internal/model"
+	"my-hp-log-collector/internal/offset"
 )
 
 // Manager 负责基于配置启动/管理多个 tail worker，并周期性发现新文件。
@@ -34,6 +34,17 @@ func NewManager(cfg *config.AppConfig, store *offset.Store, logCh chan<- model.L
 		tails: make(map[string]*tail.Tail),
 		lines: make(map[string]int64),
 	}
+}
+
+// TrackedFilesForTest 仅用于测试，返回当前已跟踪的文件路径列表。
+func (m *Manager) TrackedFilesForTest() []string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	paths := make([]string, 0, len(m.tails))
+	for p := range m.tails {
+		paths = append(paths, p)
+	}
+	return paths
 }
 
 // Start 启动文件扫描与 tail 逻辑。

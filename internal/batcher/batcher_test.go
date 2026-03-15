@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"my-log-collector/internal/config"
-	"my-log-collector/internal/model"
-	"my-log-collector/internal/offset"
-	"my-log-collector/internal/sls"
+	"my-hp-log-collector/internal/config"
+	"my-hp-log-collector/internal/model"
+	"my-hp-log-collector/internal/offset"
+	"my-hp-log-collector/internal/sls"
 )
 
 // roundTripper 用于 batcher 测试中将请求重定向到本地测试服务。

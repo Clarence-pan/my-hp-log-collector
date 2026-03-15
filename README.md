@@ -50,6 +50,25 @@ offset_save_interval: 30s
 - `offset_file`：offset 持久化文件路径；
 - `offset_save_interval`：offset 保存周期。
 
+### 构建与测试（Makefile）
+
+在项目根目录可以使用 `make` 简化构建与测试流程：
+
+- `make test`：运行 `go test ./...`，执行所有单元测试；
+- `make` / `make all`：为 Linux/macOS、amd64/arm64 生成二进制到 `dist/` 目录：
+  - `dist/log-collector-linux-amd64`
+  - `dist/log-collector-linux-arm64`
+  - `dist/log-collector-darwin-amd64`
+  - `dist/log-collector-darwin-arm64`
+- `make clean`：删除 `dist/` 目录。
+
+也可以单独构建某个平台，例如：
+
+```bash
+make build-linux-amd64
+make build-darwin-arm64
+```
+
 ### 运行
 
 ```bash

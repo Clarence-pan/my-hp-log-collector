@@ -10,8 +10,8 @@ import (
 	"os"
 	"time"
 
-	"my-log-collector/internal/config"
-	"my-log-collector/internal/model"
+	"my-hp-log-collector/internal/config"
+	"my-hp-log-collector/internal/model"
 )
 
 // Client 封装阿里云 SLS Web Tracking HTTP 客户端。

@@ -4,3 +4,5 @@ dist/
 *~
 
 .env
+log-collector.yaml
+log-collector-offsets.json

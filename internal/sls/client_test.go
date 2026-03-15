@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"my-log-collector/internal/config"
-	"my-log-collector/internal/model"
+	"my-hp-log-collector/internal/config"
+	"my-hp-log-collector/internal/model"
 )
 
 // roundTripper 用于将请求重定向到 httptest.Server。

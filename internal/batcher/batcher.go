@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"my-log-collector/internal/config"
-	"my-log-collector/internal/model"
-	"my-log-collector/internal/offset"
-	"my-log-collector/internal/sls"
+	"my-hp-log-collector/internal/config"
+	"my-hp-log-collector/internal/model"
+	"my-hp-log-collector/internal/offset"
+	"my-hp-log-collector/internal/sls"
 )
 
 // Batcher 负责从全局日志通道中消费日志，并按时间窗口和最大条数进行批量上报。

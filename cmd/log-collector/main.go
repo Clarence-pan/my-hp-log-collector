@@ -10,11 +10,11 @@ import (
 	"syscall"
 	"time"
 
-	"my-log-collector/internal/batcher"
-	"my-log-collector/internal/config"
-	"my-log-collector/internal/model"
-	"my-log-collector/internal/offset"
-	"my-log-collector/internal/tailer"
+	"my-hp-log-collector/internal/batcher"
+	"my-hp-log-collector/internal/config"
+	"my-hp-log-collector/internal/model"
+	"my-hp-log-collector/internal/offset"
+	"my-hp-log-collector/internal/tailer"
 )
 
 func main() {
